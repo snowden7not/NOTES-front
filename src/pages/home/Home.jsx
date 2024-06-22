@@ -11,6 +11,7 @@ import Toast from '../../components/toastmessage/Toast'
 import EmptyCard from '../../components/empty card/EmptyCard';
 import AddNotesImg from "./Add notes-bro.svg"
 import NoDataImg from "./9214777.svg";
+import Spinner from "./Spinner"
 
 const Home = () => {
   const [openAddEditModal,setOpenAddEditModal]=useState({
@@ -27,6 +28,7 @@ const Home = () => {
 
   const [allNotes,setAllNotes]=useState([]);
   const [userInfo,setUserInfo] = useState(null);
+  const [isLoading, setLoading] = useState(false);
 
   const[isSearch,setIsSearch]=useState(false);
  
@@ -71,6 +73,7 @@ const Home = () => {
   //get all notes
   const getAllNotes = async()=>{
     try{
+      setLoading(true);
       const response = await axiosInstance.get("/get-all-notes");
 
       if(response.data && response.data.notes){
@@ -79,6 +82,9 @@ const Home = () => {
     }
     catch(error){
       console.log("An unexpected error occurred. Please try again");
+    }
+    finally{
+      setLoading(false);
     }
   }
   
@@ -156,26 +162,38 @@ const Home = () => {
     <>
         <Navbar userInfo={userInfo} onSearchNote={onSearchNote} handleClearSearch={handleClearSearch} className="" /> 
       
-        <div className='container mx-auto px-[15px]'>
-          {allNotes.length>0 ? 
-          (<div className='grid xl:grid-cols-3 max-sm:grid-cols-1 sm:grid-cols-2 gap-4 mt-8'>
-            {allNotes.map((item,index) => (
-              <NoteCard 
+        <div className={`container mx-auto px-[15px] ${isLoading?"":""}`}>
+      {isLoading ? ( // Conditionally render spinner
+        <Spinner className=""/>
+      ) : (
+        allNotes.length > 0 ? (
+          <div className="grid xl:grid-cols-3 max-sm:grid-cols-1 sm:grid-cols-2 gap-4 mt-8">
+            {allNotes.map((item, index) => (
+              <NoteCard
                 key={item._id}
-                title={item.title} 
+                title={item.title}
                 date={item.createdOn}
                 content={item.content}
                 tags={item.tags}
-                isPinned={item.isPinned} 
-                onEdit={() => handleEdit(item)} 
-                onDelete={()=> deleteNote(item)} 
-                onPinNote={()=>updateIsPinned(item)} 
+                isPinned={item.isPinned}
+                onEdit={() => handleEdit(item)}
+                onDelete={() => deleteNote(item)}
+                onPinNote={() => updateIsPinned(item)}
               />
             ))}
-          </div>) : (
-          <EmptyCard imgSrc={isSearch? NoDataImg : AddNotesImg} message={isSearch? `No notes found matching your search.` : `Ready to capture your ideas? Create your first note now!`} />
-          )}
-        </div>
+          </div>
+        ) : (
+          <EmptyCard
+            imgSrc={isSearch ? NoDataImg : AddNotesImg}
+            message={
+              isSearch
+                ? `No notes found matching your search.`
+                : `Ready to capture your ideas? Create your first note now!`
+            }
+          />
+        )
+      )}
+    </div>
         
         <button 
           className='sm:w-16 sm:h-16 max-sm:w-11 max-sm:h-11 flex items-center justify-center rounded-2xl bg-primary hover:bg-blue-600  sm:right-14 sm:bottom-10 max-sm:bottom-10 max-sm:right-10 fixed'
