@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect,useState } from 'react'
 import {Link, useNavigate} from 'react-router-dom'
 
 import Navbar from '../../components/navbar/Navbar'
@@ -14,6 +14,21 @@ const Login = () => {
 
   const navigate=useNavigate();
 
+  // Separate function to make the backend ping
+  const pingBackend = async () => {
+    try {
+      const response = await axiosInstance.get('/');
+      console.log('Backend ping successful:', response.data); // Log the response for debugging purposes (optional)
+    } catch (error) {
+      console.error('Backend ping failed:', error); // Log the error for debugging purposes
+    }
+  };
+
+  // Call the pingBackend function on component mount
+  useEffect(() => {
+    pingBackend();
+  }, []);
+  
   const handleLogin= async(e)=>{
     e.preventDefault();
 
